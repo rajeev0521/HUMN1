@@ -60,7 +60,6 @@ def play_audio(filename):
 def main():
     audio_file = record_audio()
     text = transcribe_audio(audio_file)
-    print(text)
     response = query_ollama(text)
     print(response)
     audio_response = text_to_speech(response)
