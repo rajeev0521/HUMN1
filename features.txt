@@ -1,3 +1,16 @@
-1. Wake word detection
+
+
+# future scope
+
+1.live interrupt handling
+2.vector database creation
+3.web scrape 
+
+
+
+added feature
+
+1. Wake word detection (main add )
 2. Break responce in chunks to decrease latency
-3. live interrupt handling
+
+

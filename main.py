@@ -34,6 +34,8 @@ def transcribe_audio(filename):
     print("Transcription:", text, "\n")
     return text  # Return text immediately
 
+import re
+
 def query_ollama_streaming(prompt, model="llama3:latest"):
     print("Querying Ollama...")
     response = ollama.chat(model=model, messages=[{"role": "user", "content": prompt}], stream=True)
@@ -42,19 +44,23 @@ def query_ollama_streaming(prompt, model="llama3:latest"):
 
     for chunk in response:
         chunk_text = chunk["message"]["content"]
-        sentence_buffer += " " + chunk_text.strip()  # Append and clean up spaces
+        chunk_text = re.sub(r"\*", "", chunk_text)  # Remove asterisks
+        chunk_text = re.sub(r"\s+", " ", chunk_text).strip()  # Remove extra spaces
+        sentence_buffer += " " + chunk_text
 
         # Extract complete sentences
         sentences = re.findall(r'[^.!?]*[.!?]"?', sentence_buffer)
 
         for sentence in sentences:
-            if sentence.strip():  # Ensure non-empty
-                text_to_speech(sentence.strip())  # Convert & Play
+            cleaned_sentence = sentence.strip()
+            if cleaned_sentence:  # Ensure non-empty
+                text_to_speech(cleaned_sentence)  # Convert & Play
                 sentence_buffer = sentence_buffer.replace(sentence, "").strip()  # Remove spoken part
 
     # Speak any remaining partial sentence
     if sentence_buffer.strip():
         text_to_speech(sentence_buffer.strip())
+
 
 def text_to_speech(text):
     print(f"\nConverting to speech: {text}")

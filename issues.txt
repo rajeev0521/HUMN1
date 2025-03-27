@@ -1,2 +1,7 @@
 1. * issue
-2. Punctuation marks issue
+2. Punctuation marks issue (solved)
+3.voice (realstic)
+4.model latency 
+5.model base prompt req 
+
+
