@@ -8,7 +8,7 @@ from gtts import gTTS
 import tempfile
 import subprocess
 import whisper
-model = whisper.load_model("base.en")
+model = whisper.load_model("small.en")
 import subprocess
 
 def record_audio(filename="audio.mp3", duration=5, samplerate=44100):
@@ -31,10 +31,12 @@ def record_audio(filename="audio.mp3", duration=5, samplerate=44100):
     return filename
 
 def transcribe_audio(filename):
+    print("Transcribing audio...")
+    print("\n")
     result = model.transcribe("audio.mp3")
-    print("Transcription: ", result)
+    print("Transcription: ", result, "\n")
 
-def query_ollama(prompt, model="llama3:latest"):
+def query_ollama(prompt, model="llama3.2:latest"):
     print("Querying Ollama...")
     response = ollama.chat(model=model, messages=[{"role": "user", "content": prompt}])
     response_text = response["message"]["content"]
@@ -60,6 +62,7 @@ def main():
     text = transcribe_audio(audio_file)
     print(text)
     response = query_ollama(text)
+    print(response)
     audio_response = text_to_speech(response)
     play_audio(audio_response)
 

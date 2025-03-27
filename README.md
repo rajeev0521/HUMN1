@@ -17,8 +17,13 @@ Ensure you have the following dependencies installed before running the project.
 # Create and activate a virtual environment
 python3 -m venv env
 source env/bin/activate
-
+```
+```bash
 # Install dependencies
+pip install requirements -r
+```
+## or(any-one)
+```bash
 pip install sounddevice numpy wave ollama gtts whisper pydub
 
 # Install ffmpeg for audio processing
