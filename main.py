@@ -38,25 +38,23 @@ def query_ollama_streaming(prompt, model="llama3:latest"):
     print("Querying Ollama...")
     response = ollama.chat(model=model, messages=[{"role": "user", "content": prompt}], stream=True)
 
-    sentence_buffer = ""  # Store words until a sentence is complete
+    sentence_buffer = ""  # Store words until a complete sentence is formed
 
     for chunk in response:
         chunk_text = chunk["message"]["content"]
-        sentence_buffer += " " + chunk_text  # Accumulate text
+        sentence_buffer += " " + chunk_text.strip()  # Append and clean up spaces
 
-        # Check if a sentence is complete (ends with ., !, or ?)
-        sentences = re.split(r'([.?!])', sentence_buffer)  # Splitting with punctuation
-        full_sentences = ["".join(sentences[i:i+2]).strip() for i in range(0, len(sentences)-1, 2)]  
+        # Extract complete sentences
+        sentences = re.findall(r'[^.!?]*[.!?]"?', sentence_buffer)
 
-        for sentence in full_sentences:
-            if sentence:
-                text_to_speech(sentence)  # Convert & Play
-                sentence_buffer = sentence_buffer.replace(sentence, "").strip()  # Remove spoken sentence
+        for sentence in sentences:
+            if sentence.strip():  # Ensure non-empty
+                text_to_speech(sentence.strip())  # Convert & Play
+                sentence_buffer = sentence_buffer.replace(sentence, "").strip()  # Remove spoken part
 
-    # If anything remains, speak the last part
+    # Speak any remaining partial sentence
     if sentence_buffer.strip():
         text_to_speech(sentence_buffer.strip())
-        
 
 def text_to_speech(text):
     print(f"\nConverting to speech: {text}")
@@ -77,9 +75,12 @@ def play_audio(filename):
         subprocess.call(["mpg321", filename])  # Ensure mpg321 is installed
 
 def main():
-    audio_file = record_audio()
-    text = transcribe_audio(audio_file)
-    query_ollama_streaming(text)  # Stream response & speak instantly
+    while True:
+          audio_file = record_audio()
+          text = transcribe_audio(audio_file)
+          query_ollama_streaming(text)  # Stream response & speak instantly
 
+    
+  
 if __name__ == "__main__":
     main()
