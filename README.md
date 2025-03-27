@@ -2,7 +2,7 @@
 
 HUMN1 is a Python-based voice-to-text AI system that records audio, transcribes it using OpenAI's Whisper model, processes the text with the Ollama language model, and converts the response back to speech using Google Text-to-Speech (gTTS).
 
-## Features
+## Features:
 - Record voice input.
 - Transcribe speech to text using Whisper.
 - Process the text with the Ollama AI model.
