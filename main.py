@@ -4,66 +4,82 @@ import numpy as np
 import wave
 import ollama
 import os
-from gtts import gTTS
+import whisper
 import tempfile
 import subprocess
-import whisper
-model = whisper.load_model("small.en")
-import subprocess
+from gtts import gTTS
+import re  # For sentence detection
 
-def record_audio(filename="audio.mp3", duration=5, samplerate=44100):
+# Load Whisper Model (Faster Version)
+model = whisper.load_model("base.en")
+
+def record_audio(filename="audio.wav", duration=5, samplerate=16000):
     print("Recording...")
-    audio_data = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=2, dtype=np.int16)
+    audio_data = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=1, dtype=np.int16)
     sd.wait()
     print("Recording finished.")
-    
-    wav_filename = "temp_recorded.wav"
-    with wave.open(wav_filename, "wb") as wf:
-        wf.setnchannels(2)
+
+    with wave.open(filename, "wb") as wf:
+        wf.setnchannels(1)  # Mono for speed
         wf.setsampwidth(2)
         wf.setframerate(samplerate)
         wf.writeframes(audio_data.tobytes())
-    
-    audio = AudioSegment.from_wav(wav_filename)
-    audio.export(filename, format="mp3")
-    os.remove(wav_filename)
-    
+
     return filename
 
 def transcribe_audio(filename):
     print("Transcribing audio...")
-    print("\n")
-    result = model.transcribe("audio.mp3")
-    print("Transcription: ", result, "\n")
+    result = model.transcribe(filename)
+    text = result["text"]
+    print("Transcription:", text, "\n")
+    return text  # Return text immediately
 
-def query_ollama(prompt, model="llama3:latest"):
+def query_ollama_streaming(prompt, model="llama3:latest"):
     print("Querying Ollama...")
-    response = ollama.chat(model=model, messages=[{"role": "user", "content": prompt}])
-    response_text = response["message"]["content"]
-    print("Ollama Response: ", response_text)
-    return response_text
+    response = ollama.chat(model=model, messages=[{"role": "user", "content": prompt}], stream=True)
+
+    sentence_buffer = ""  # Store words until a sentence is complete
+
+    for chunk in response:
+        chunk_text = chunk["message"]["content"]
+        sentence_buffer += " " + chunk_text  # Accumulate text
+
+        # Check if a sentence is complete (ends with ., !, or ?)
+        sentences = re.split(r'([.?!])', sentence_buffer)  # Splitting with punctuation
+        full_sentences = ["".join(sentences[i:i+2]).strip() for i in range(0, len(sentences)-1, 2)]  
+
+        for sentence in full_sentences:
+            if sentence:
+                text_to_speech(sentence)  # Convert & Play
+                sentence_buffer = sentence_buffer.replace(sentence, "").strip()  # Remove spoken sentence
+
+    # If anything remains, speak the last part
+    if sentence_buffer.strip():
+        text_to_speech(sentence_buffer.strip())
+        
 
 def text_to_speech(text):
-    print("Converting text to speech...")
-    tts = gTTS(text=text, lang='en')
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
-    tts.save(temp_file.name)
-    return temp_file.name
+    print(f"\nConverting to speech: {text}")
+    tts = gTTS(text=text, lang="en")
+    
+    # Save audio temporarily
+    temp_audio = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
+    tts.save(temp_audio.name)
+
+    # Play the generated speech immediately
+    play_audio(temp_audio.name)
 
 def play_audio(filename):
     print("Playing audio...")
     if os.name == "nt":  # Windows
         os.system(f"start {filename}")
     else:  # Linux / Mac
-        subprocess.call(["mpg321", filename])
+        subprocess.call(["mpg321", filename])  # Ensure mpg321 is installed
 
 def main():
     audio_file = record_audio()
     text = transcribe_audio(audio_file)
-    response = query_ollama(text)
-    print(response)
-    audio_response = text_to_speech(response)
-    play_audio(audio_response)
+    query_ollama_streaming(text)  # Stream response & speak instantly
 
 if __name__ == "__main__":
     main()
