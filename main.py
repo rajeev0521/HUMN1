@@ -36,7 +36,7 @@ def transcribe_audio(filename):
     result = model.transcribe("audio.mp3")
     print("Transcription: ", result, "\n")
 
-def query_ollama(prompt, model="llama3.2:latest"):
+def query_ollama(prompt, model="llama3:latest"):
     print("Querying Ollama...")
     response = ollama.chat(model=model, messages=[{"role": "user", "content": prompt}])
     response_text = response["message"]["content"]
