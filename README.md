@@ -3,6 +3,7 @@
 HUMN1 is a Python-based voice-to-text AI system that records audio, transcribes it using OpenAI's Whisper model, processes the text with the Ollama language model, and converts the response back to speech using Google Text-to-Speech (gTTS).
 
 ## Features:
+- Wake word detection.
 - Record voice input.
 - Transcribe speech to text using Whisper.
 - Process the text with the Ollama AI model.
@@ -37,10 +38,18 @@ python -m venv env
 env\Scripts\activate
 
 # Install dependencies
-pip install sounddevice numpy wave ollama gtts whisper pydub
+pip install -r requirements.txt
 
-# Install ffmpeg manually (Download from https://ffmpeg.org/download.html)
 ```
+
+```
+#install ffmpeg for audio processing
+
+choco install ffmpeg -y
+
+```
+Install ffmpeg manually (Download from https://ffmpeg.org/download.html)
+Note: Ensure to add the path to the ffmpeg executable in your system's PATH environment variable.
 
 ## Usage
 ```bash
